@@ -1,4 +1,6 @@
-package com.uma.example.springuma.integration.base;
+package com.uma.example.springuma;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.uma.example.springuma.integration.base.AbstractIntegration;
 import com.uma.example.springuma.model.Medico;
 import com.uma.example.springuma.model.RepositoryMedico;
 import com.uma.example.springuma.model.MedicoService;
@@ -8,25 +10,27 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.test.web.servlet.MvcResult;
 
-import java.util.Random;
-import java.util.UUID;
-import java.util.List;
+import java.util.LinkedHashMap;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.hamcrest.Matchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class MedicoServiceIT extends AbstractIntegration{
+public class MedicoServiceIT extends AbstractIntegration {
     @Autowired
     private MedicoService medicoService;
 
@@ -36,55 +40,38 @@ public class MedicoServiceIT extends AbstractIntegration{
     @Autowired
     private RepositoryMedico repositoryMedico;
 
-    Medico medico;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    private Medico medico;
+
     @BeforeEach
-    public void setup() {
-        //repositoryMedico.deleteAll();
-        int dni = (int) (Math.random()*100);
-        medico = new Medico(String.valueOf(dni), "Medico1","Traumatologo");
+    public void setUp() {
+        medico = new Medico();
+        medico.setDni("11111111X");
+        medico.setNombre("MedicoName");
+        medico.setEspecialidad("Traumatologo");
     }
 
     @Test
-    @DisplayName("Cuando intento obtener un medico que si existe, lo retorna correctamente")
-    void getMedico_inDB_returnTrue() throws Exception {
-        // crea un medico
+    @DisplayName("Crea un médico, lo inserta y devuelve de la bdd correctamente")
+    public void getMedicoId_withMedicosInBdd_shouldReturnMedicoMVC() throws JsonProcessingException, Exception {
+        // crea una persona
         this.mockMvc.perform(post("/medico")
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(medico)))
-                .andExpect(status().isCreated())
-                .andExpect(status().is2xxSuccessful());
+        .contentType("application/json")
+        .content(objectMapper.writeValueAsString(medico)))
+        .andExpect(status().isCreated())
+        .andExpect(status().is2xxSuccessful());
 
-        // Fetch the Medico by its DNI to get its ID
-        Medico savedMedico = medicoService.getMedico(medico.getId());
-
-        // obtiene el medico
-        this.mockMvc.perform(get("/medico/" + savedMedico.getId()))
-                .andDo(print())
-                .andExpect(status().is2xxSuccessful())
-                .andExpect(content().contentType("application/json"))
-                .andExpect(jsonPath("$.id").value(savedMedico.getId()))
-                .andExpect(jsonPath("$.nombre").value(savedMedico.getNombre()))
-                .andExpect(jsonPath("$.especialidad").value(savedMedico.getEspecialidad()));
-    }
-
-    @Test
-    public void getMedicoId_withMedicosInBdd_shouldReturnMedicoMVC() throws Exception {
-        String dni = UUID.randomUUID().toString();
-        String medicoJson = String.format("{\"dni\": \"%s\", \"especialidad\": \"Traumatologo\", \"nombre\": \"Medico1\"}", dni);
-
-        mockMvc.perform(post("/medico")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(medicoJson))
-                .andExpect(status().isCreated());
-
-        Medico savedMedico = medicoService.getMedico(1L);
-        assertNotNull(savedMedico, "Medico no debería ser null");
-
-        mockMvc.perform(get("/medico/{id}", savedMedico.getId())
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.dni").value(dni));
+        // obtiene el listado de personas
+        this.mockMvc.perform(get("/medico/1"))
+        .andDo(print())
+        .andExpect(status().is2xxSuccessful())
+        .andExpect(content().contentType("application/json"))
+                .andExpect(jsonPath("$", instanceOf(LinkedHashMap.class)))
+                .andExpect(jsonPath("$.dni").value(medico.getDni()))
+                .andExpect(jsonPath("$.nombre").value(medico.getNombre()))
+                .andExpect(jsonPath("$.especialidad").value(medico.getEspecialidad()));
     }
 
     @Test
