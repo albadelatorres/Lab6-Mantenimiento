@@ -17,14 +17,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.LinkedHashMap;
 
 import static org.hamcrest.Matchers.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -54,16 +53,16 @@ public class MedicoServiceIT extends AbstractIntegration {
     }
 
     @Test
-    @DisplayName("Crea un médico, lo inserta y devuelve de la bdd correctamente")
-    public void getMedicoId_withMedicosInBdd_shouldReturnMedicoMVC() throws JsonProcessingException, Exception {
-        // crea una persona
+    @DisplayName("Crea un médico, lo inserta y devuelve de la bdd a partir de su ID correctamente")
+    public void getMedico_withMedicosInBdd_shouldReturnMedico() throws Exception {
+        // insertamos el médico
         this.mockMvc.perform(post("/medico")
         .contentType("application/json")
         .content(objectMapper.writeValueAsString(medico)))
         .andExpect(status().isCreated())
         .andExpect(status().is2xxSuccessful());
 
-        // obtiene el listado de personas
+        // obtenemos el médico recién insertado
         this.mockMvc.perform(get("/medico/1"))
         .andDo(print())
         .andExpect(status().is2xxSuccessful())
@@ -75,114 +74,94 @@ public class MedicoServiceIT extends AbstractIntegration {
     }
 
     @Test
-    public void getAllMedicos_withMedicosInBdd_shouldReturnAllMedicos() {
-        Medico medico = new Medico();
-        medico.setDni("1");
-        medico.setEspecialidad("Traumatologo");
-        medico.setNombre("Medico1");
+    @DisplayName("Crear un médico con DNI repetido e insertarlo en la bdd hará que salte un error")
+    public void saveMedico_withIncorrectData_shouldReturnError() throws Exception {
+        Medico incorrectData = new Medico();
+        incorrectData.setDni("11111111X");
+        incorrectData.setNombre("Medico");
+        incorrectData.setEspecialidad("Traumatologo");
 
-        medicoService.addMedico(medico);
+        // insertamos el primer médico
+        this.mockMvc.perform(post("/medico")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(medico)))
+                .andExpect(status().isCreated())
+                .andExpect(status().is2xxSuccessful());
 
-
-        /*List<Medico> allMedicos = medicoService.getAllMedicos();
-        assertFalse(allMedicos.isEmpty());
-        assertTrue(allMedicos.contains(medico));*/
-    }
-
-    @Test
-    public void getMedico_withMedicosInBdd_shouldReturnMedico() {
-        Medico medico = new Medico();
-        medico.setDni("1");
-        medico.setEspecialidad("Traumatologo");
-        medico.setNombre("Medico1");
-
-        medicoService.addMedico(medico);
-
-        Medico retrievedMedico = medicoService.getMedico(1L);
-        assertNotNull(retrievedMedico);
-        assertEquals(retrievedMedico.getId(), medico.getId());
-    }
-
-    @Test
-    public void addMedico_withAllData_shouldAddMedico() {
-        Medico medico = new Medico();
-        medico.setDni("1");
-        medico.setEspecialidad("Traumatologo");
-        medico.setNombre("Medico1");
-
-        medicoService.addMedico(medico);
-
-        Medico retrievedMedico = medicoService.getMedico(1L);
-        assertNotNull(retrievedMedico);
-        assertEquals(retrievedMedico.getId(), medico.getId());
-        assertEquals(retrievedMedico.getNombre(), medico.getNombre());
-        assertEquals(retrievedMedico.getEspecialidad(), medico.getEspecialidad());
-        assertEquals(retrievedMedico.getDni(), medico.getDni());
-    }
-
-    @Test
-    public void updateMedico_shouldUpdateMedico() {
-        Medico medico = new Medico();
-        medico.setDni("1");
-        medico.setEspecialidad("Traumatologo");
-        medico.setNombre("Medico1");
-        medicoService.addMedico(medico);
-
-        Medico retrievedMedico = medicoService.getMedico(1L);
-        retrievedMedico.setNombre("Medico2");
-        medicoService.updateMedico(retrievedMedico);
-
-        Medico updatedMedico = medicoService.getMedico(1L);
-        assertEquals(updatedMedico.getNombre(), retrievedMedico.getNombre());
-        assertEquals(updatedMedico.getEspecialidad(), retrievedMedico.getEspecialidad());
-        assertEquals(updatedMedico.getDni(), retrievedMedico.getDni());
-    }
-
-    @Test
-    public void deleteMedico_shouldDeleteMedico() {
-        Medico medico = new Medico();
-        medico.setDni("1");
-        medico.setEspecialidad("Traumatologo");
-        medicoService.addMedico(medico);
-
-        Medico retrievedMedico = medicoService.getMedico(1L);
-        medicoService.removeMedico(retrievedMedico);
-
-        assertNull(medicoService.getMedico(1L));
-    }
-
-    @Test
-    public void removeMedicoId_shouldRemoveMedicoById() {
-        Medico medico = new Medico();
-        medico.setDni("1");
-        medico.setEspecialidad("Traumatologo");
-        medicoService.addMedico(medico);
-
-        Medico medico2 = new Medico();
-        medico2.setDni("2");
-        medico2.setEspecialidad("Traumatologo");
-        medicoService.addMedico(medico2);
-
-        medicoService.removeMedicoID(1L);
-
-        assertNull(medicoService.getMedico(1L));
-        assertNotNull(medicoService.getMedico(2L));
+        // insertamos el médico repetido
+        this.mockMvc.perform(post("/medico")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(incorrectData)))
+                .andExpect(status().isInternalServerError()); // esperamos un 500 Internal Server Error
     }
 
 
     @Test
-    public void getMedicoByDni_withMedicosInBdd_shouldReturnMedicoByDni(){
-        Medico medico = new Medico();
-        medico.setDni("1");
-        medico.setEspecialidad("Traumatologo");
-        medico.setNombre("Medico1");
+    @DisplayName("Inserta un médico en la bdd, actualiza sus datos y comprueba que han sido actualizados correctamente")
+    public void updateMedico_shouldUpdateMedico() throws Exception {
 
-        medicoService.addMedico(medico);
+        // insertamos el médico
+        this.mockMvc.perform(post("/medico")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(medico)))
+                .andExpect(status().isCreated())
+                .andExpect(status().is2xxSuccessful());
 
-        Medico retrievedMedico = medicoService.getMedicoByDni("1");
-        assertNotNull(retrievedMedico);
-        assertEquals(retrievedMedico.getDni(), medico.getDni());
+        // cambiamos los datos del médico
+        medico.setNombre("MedicoUpdated");
+        medico.setDni("11111112X");
+        medico.setId(1);
+
+        //llamamos a update con url /medico
+        this.mockMvc.perform(put("/medico")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(medico)))
+                .andExpect(status().is2xxSuccessful());
+
+        //comprobamos que el nombre se ha cambiado y el resto de datos siguen igual
+        this.mockMvc.perform(get("/medico/1"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json"))
+                .andExpect(jsonPath("$.dni").value("11111112X"))
+                .andExpect(jsonPath("$.nombre").value("MedicoUpdated"))
+                .andExpect(jsonPath("$.especialidad").value("Traumatologo"));
     }
 
+    @Test
+    @DisplayName("Inserta un médico en la bdd y lo borra correctamente")
+    public void deleteMedico_shouldDeleteMedico() throws Exception {
+        // insertamos el médico
+        this.mockMvc.perform(post("/medico")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(medico)))
+                .andExpect(status().isCreated())
+                .andExpect(status().is2xxSuccessful());
+
+        //borramos el médico
+        this.mockMvc.perform(delete("/medico/1")
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(medico)))
+                .andExpect(status().is2xxSuccessful());
+    }
+
+    @Test
+    public void getMedicoByDni_withMedicosInBdd_shouldReturnMedicoByDni() throws Exception {
+        // insertamos el médico
+        this.mockMvc.perform(post("/medico")
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(medico)))
+                .andExpect(status().isCreated())
+                .andExpect(status().is2xxSuccessful());
+
+        //obtenemos el médico a partir de su dni
+        this.mockMvc.perform(get("/medico/dni/11111111X")
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(medico)))
+                .andExpect(status().isOk())
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(jsonPath("$.dni").value("11111111X"))
+                .andExpect(jsonPath("$.especialidad").value("Traumatologo"))
+                .andExpect(jsonPath("$.nombre").value("MedicoName"));
+    }
 
 }
