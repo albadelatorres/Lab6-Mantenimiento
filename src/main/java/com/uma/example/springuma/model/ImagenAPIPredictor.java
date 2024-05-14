@@ -23,7 +23,7 @@ public class ImagenAPIPredictor {
 
     private static final String API_URL = "https://api-inference.huggingface.co/models/MUmairAB/Breast_Cancer_Detector";
     // @TODO: replace USE_TOKEN_HERE with your token
-    private static final String TOKEN = "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";
+    private static final String TOKEN = "Bearer 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";
     
     public static Map<String, Double> query(byte[] file_data) throws IOException, Exception {
     

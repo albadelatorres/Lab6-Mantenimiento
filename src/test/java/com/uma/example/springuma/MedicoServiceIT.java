@@ -1,5 +1,4 @@
 package com.uma.example.springuma;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.uma.example.springuma.integration.base.AbstractIntegration;
 import com.uma.example.springuma.model.Medico;
 import com.uma.example.springuma.model.RepositoryMedico;
@@ -24,20 +23,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
-import static org.junit.jupiter.api.Assertions.*;
-
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class MedicoServiceIT extends AbstractIntegration {
-    @Autowired
-    private MedicoService medicoService;
 
     @Autowired
     private MockMvc mockMvc;
-
-    @Autowired
-    private RepositoryMedico repositoryMedico;
 
     @Autowired
     private ObjectMapper objectMapper;
