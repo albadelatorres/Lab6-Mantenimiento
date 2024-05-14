@@ -1,9 +1,7 @@
 package com.uma.example.springuma;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.uma.example.springuma.integration.base.AbstractIntegration;
-import com.uma.example.springuma.model.*;
+import com.uma.example.springuma.model.Medico;
+import com.uma.example.springuma.model.Paciente;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -12,14 +10,16 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.LinkedHashMap;
 
-import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
@@ -27,13 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class PacienteServiceIT  extends AbstractIntegration {
 
     @Autowired
-    private PacienteService pacienteService;
-
-    @Autowired
     private MockMvc mockMvc;
-
-    @Autowired
-    private RepositoryMedico repositoryMedico;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -61,10 +55,10 @@ public class PacienteServiceIT  extends AbstractIntegration {
     public void getPacienteId_withPacientesInBdd_shouldReturnPacienteMVC() throws Exception {
         // crea una persona
         this.mockMvc.perform(post("/paciente")
-                        .contentType("application/json")
-                        .content(objectMapper.writeValueAsString(paciente)))
-                .andExpect(status().isCreated())
-                .andExpect(status().is2xxSuccessful());
+            .contentType("application/json")
+            .content(objectMapper.writeValueAsString(paciente)))
+            .andExpect(status().isCreated())
+            .andExpect(status().is2xxSuccessful());
 
         // obtiene el listado de personas
         this.mockMvc.perform(get("/paciente/1"))

@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PacienteService {
@@ -18,8 +19,9 @@ public class PacienteService {
     public Paciente getPaciente(Long id){
         return repositoryPaciente.getReferenceById(id); // Cambio el tipo de retorno a Paciente
     }
-
+    @Transactional
     public Paciente addPaciente(Paciente p){
+
         return repositoryPaciente.saveAndFlush(p); // Cambio el tipo de argumento y retorno a Paciente
     }
 
