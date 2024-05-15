@@ -30,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.uma.example.springuma.model.Informe;
 import reactor.core.publisher.Mono;
 
+//Realizado por Alba de la Torre Segato y Jonatan Thorpe
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class InformeServiceIT extends AbstractIntegration {

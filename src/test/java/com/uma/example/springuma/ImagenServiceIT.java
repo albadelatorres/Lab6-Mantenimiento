@@ -22,6 +22,7 @@ import org.springframework.web.reactive.function.BodyInserters;
 
 import jakarta.annotation.PostConstruct;
 import reactor.core.publisher.Mono;
+//Realizado por Alba de la Torre Segato y Jonatan Thorpe
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class ImagenServiceIT extends AbstractIntegration{
