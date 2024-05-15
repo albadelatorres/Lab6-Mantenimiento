@@ -19,7 +19,6 @@ public class PacienteService {
     public Paciente getPaciente(Long id){
         return repositoryPaciente.getReferenceById(id); // Cambio el tipo de retorno a Paciente
     }
-    @Transactional
     public Paciente addPaciente(Paciente p){
 
         return repositoryPaciente.saveAndFlush(p); // Cambio el tipo de argumento y retorno a Paciente

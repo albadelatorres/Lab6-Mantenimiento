@@ -1,4 +1,5 @@
 package com.uma.example.springuma;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.uma.example.springuma.integration.base.AbstractIntegration;
 import com.uma.example.springuma.model.Medico;
 import com.uma.example.springuma.model.Paciente;
@@ -36,11 +37,19 @@ public class PacienteServiceIT  extends AbstractIntegration {
     private Medico medico;
 
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws Exception {
         medico = new Medico();
         medico.setDni("11111111X");
         medico.setNombre("MedicoName");
         medico.setEspecialidad("Traumatologo");
+        medico.setId(1);
+
+        // insertamos el médico
+        this.mockMvc.perform(post("/medico")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(medico)))
+                .andExpect(status().isCreated())
+                .andExpect(status().is2xxSuccessful());
 
         paciente = new Paciente();
         paciente.setCita("Lunes");
@@ -48,11 +57,12 @@ public class PacienteServiceIT  extends AbstractIntegration {
         paciente.setEdad(19);
         paciente.setMedico(medico);
         paciente.setNombre("PacienteName");
+        paciente.setId(1);
     }
 
     @Test
     @DisplayName("Crea un paciente, lo inserta y devuelve de la bdd correctamente")
-    public void getPacienteId_withPacientesInBdd_shouldReturnPacienteMVC() throws Exception {
+    public void getPacienteId_withPacientesInBdd_shouldReturnPaciente() throws Exception {
         // crea una persona
         this.mockMvc.perform(post("/paciente")
             .contentType("application/json")
@@ -70,7 +80,7 @@ public class PacienteServiceIT  extends AbstractIntegration {
                 .andExpect(jsonPath("$.dni").value(paciente.getDni()))
                 .andExpect(jsonPath("$.edad").value(paciente.getEdad()))
                 .andExpect(jsonPath("$.cita").value(paciente.getCita()))
-                .andExpect(jsonPath("$.medico").value(paciente.getMedico()));
+                .andExpect(jsonPath("$.medico.dni").value(paciente.getMedico().getDni()));
     }
 
     @Test
@@ -82,6 +92,7 @@ public class PacienteServiceIT  extends AbstractIntegration {
         incorrectData.setEdad(19);
         incorrectData.setMedico(medico);
         incorrectData.setNombre("PacienteName");
+        incorrectData.setId(2);
 
         // insertamos el primer paciente
         this.mockMvc.perform(post("/paciente")
@@ -91,7 +102,7 @@ public class PacienteServiceIT  extends AbstractIntegration {
                 .andExpect(status().is2xxSuccessful());
 
         // insertamos el paciente repetido
-        this.mockMvc.perform(post("/pacente")
+        this.mockMvc.perform(post("/paciente")
                         .contentType("application/json")
                         .content(objectMapper.writeValueAsString(incorrectData)))
                 .andExpect(status().isInternalServerError()); // esperamos un 500 Internal Server Error
@@ -99,7 +110,7 @@ public class PacienteServiceIT  extends AbstractIntegration {
 
     @Test
     @DisplayName("Inserta un paciente en la bdd, actualiza sus datos y comprueba que han sido actualizados correctamente")
-    public void updatePaciente_shouldUpdateMedico() throws Exception {
+    public void updatePaciente_shouldUpdatePaciente() throws Exception {
 
         // insertamos el paciente
         this.mockMvc.perform(post("/paciente")
@@ -129,7 +140,7 @@ public class PacienteServiceIT  extends AbstractIntegration {
                 .andExpect(jsonPath("$.dni").value("123456788X"))
                 .andExpect(jsonPath("$.edad").value(19))
                 .andExpect(jsonPath("$.cita").value("Lunes"))
-                .andExpect(jsonPath("$.medico").value(medico));
+                .andExpect(jsonPath("$.medico.dni").value(medico.getDni()));
     }
 
 }

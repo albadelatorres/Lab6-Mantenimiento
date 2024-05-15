@@ -19,7 +19,6 @@ public class MedicoService {
         return repositoryMedico.getReferenceById(id);
     }
 
-    @Transactional
     public Medico addMedico(Medico m){
 
         return repositoryMedico.saveAndFlush(m);

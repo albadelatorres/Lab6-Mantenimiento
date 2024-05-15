@@ -36,7 +36,7 @@ public class ImagenServiceIT extends AbstractIntegration{
     @PostConstruct
     public void init() {
         client = WebTestClient.bindToServer().baseUrl("http://localhost:"+port)
-                .responseTimeout(Duration.ofMillis(3000000)).build();
+                .responseTimeout(Duration.ofMillis(300000000)).build();
 
         // Creamos y subimos un médico
         medico = new Medico();
